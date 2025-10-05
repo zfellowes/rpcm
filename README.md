@@ -12,6 +12,10 @@ To create a venv, change directory to this repo that you cloned, and once inside
 
 ` python3 -m venv venv `
 
+Make sure to enable it with:
+
+` source ./venv/bin/activate `
+
 Then to install the requirements, run:
 
 ` pip install -r requirements.txt `
