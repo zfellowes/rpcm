@@ -26,9 +26,9 @@ print(f"{Fore.BLUE}{pyfiglet.figlet_format("RPCM", font='doom')}{Style.RESET_ALL
 print(f"{Fore.YELLOW}!> Please paste your Github personal access token if you have one:")	# Prompt for personal access token
 api_key = input(f"{Style.RESET_ALL}$> ").strip()
 if not api_key:
-    g = Github()	# Don't use a key if nothing is entered
+	g = Github()	# Don't use a key if nothing is entered
 else:
-    g = Github(auth=Auth.Token(api_key))	# Take what the user pasted and use it as a personal access token
+	g = Github(auth=Auth.Token(api_key))	# Take what the user pasted and use it as a personal access token
 						# This allows the user to access their own private repos
 
 print(f"{Fore.YELLOW}!> Please enter the user and repo. For example: username/repo")	# Prompt for username/repo
@@ -45,29 +45,46 @@ except Exception:	# If above fails then the repo is invalid, run the exception b
 
 print(f"{Fore.GREEN}>> Found repo{Style.RESET_ALL}")	# Indicate success
 
-def get_since_date():	# Function to get the since date
-    while True:
-        try:
-            print(f"{Fore.YELLOW}!> Enter YEAR:")
-            YEAR = int(input(f"{Style.RESET_ALL}$> "))
-            print(f"{Fore.YELLOW}!> Enter MONTH (1-12)")
-            MONTH = int(input(f"{Style.RESET_ALL}$> "))
-            print(f"{Fore.YELLOW}!> Enter DAY: ")
-            DAY = int(input(f"{Style.RESET_ALL}$> "))
-            since_date = datetime(YEAR, MONTH, DAY, tzinfo=timezone.utc)
-            return since_date
-        except ValueError:
-            print(f"{Fore.RED}!> Invalid date, try again{Style.RESET_ALL}")
+def get_start_date():	# Function to get the start date
+	while True:
+		print(f"{Fore.YELLOW}!> Start date{Style.RESET_ALL}")
+		try:
+			print(f"{Fore.YELLOW}!> Enter YEAR:")
+			YEAR = int(input(f"{Style.RESET_ALL}$> "))
+			print(f"{Fore.YELLOW}!> Enter MONTH (1-12)")
+			MONTH = int(input(f"{Style.RESET_ALL}$> "))
+			print(f"{Fore.YELLOW}!> Enter DAY: ")
+			DAY = int(input(f"{Style.RESET_ALL}$> "))
+			start_date = datetime(YEAR, MONTH, DAY, tzinfo=timezone.utc)
+			return start_date
+		except ValueError:
+			print(f"{Fore.RED}!> Invalid date, try again{Style.RESET_ALL}")
 
-since_date = get_since_date()				# Store the since date
-commits = list(repo.get_commits(since=since_date))	# Get the commits
+def get_end_date():	# Function to get the end date
+	while True:
+		print(f"{Fore.YELLOW}!> End date{Style.RESET_ALL}")
+		try:
+			print(f"{Fore.YELLOW}!> Enter YEAR:")
+			YEAR = int(input(f"{Style.RESET_ALL}$> "))
+			print(f"{Fore.YELLOW}!> Enter MONTH (1-12)")
+			MONTH = int(input(f"{Style.RESET_ALL}$> "))
+			print(f"{Fore.YELLOW}!> Enter DAY: ")
+			DAY = int(input(f"{Style.RESET_ALL}$> "))
+			end_date = datetime(YEAR, MONTH, DAY, tzinfo=timezone.utc)
+			return end_date
+		except ValueError:
+			print(f"{Fore.RED}!> Invalid date, try again{Style.RESET_ALL}")
+
+start_date = get_start_date()				# Store the start date
+end_date = get_end_date()				# Store the end date
+commits = list(repo.get_commits(since=start_date, until=end_date))	# Get the commits from the specified range date.
 
 if not commits:	# No commits found
-    print(f"{Fore.RED}!> No commits found since {since_date.date()}{Style.RESET_ALL}")
-    exit()
+	print(f"{Fore.RED}!> No commits found between {start_date.date()} - {end_date.date()}{Style.RESET_ALL}")
+	exit()
 
 # Get the date of each commit
-dates = [commit.commit.author.date.date() for commit in commits if commit.commit.author.date >= since_date]
+dates = [commit.commit.author.date.date() for commit in commits if commit.commit.author.date >= start_date]
 commit_counts = Counter(dates)
 sorted_dates = sorted(commit_counts.keys())	# Sort them
 counts = [commit_counts[date] for date in sorted_dates]
@@ -93,8 +110,7 @@ plt.gca().yaxis.set_major_locator(MaxNLocator(integer=True))	# Integer values on
 plt.grid(axis='y', linestyle='--', alpha=0.5, color='gray')
 
 stats_text = f"Total commits: {total_commits}\nDate range: {sorted_dates[0]} to {sorted_dates[-1]}\nMax commits/day: {max_commits}\nAverage commits/day: {average_commits:.2f}"
-plt.gca().text(1.01, 0.5, stats_text, transform=plt.gca().transAxes, fontsize=10,
-               verticalalignment='center', bbox=dict(facecolor='gray', alpha=0.3))
+plt.gca().text(1.01, 0.5, stats_text, transform=plt.gca().transAxes, fontsize=10, verticalalignment='center', bbox=dict(facecolor='gray', alpha=0.3))
 
 plt.tight_layout()
 plt.show()
